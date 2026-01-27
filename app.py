@@ -12,7 +12,7 @@ DB_FILE = 'database.json'
 WEBHOOK_URL = 'https://discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS' # เช่น Discord Webhook URL
 
 def send_to_webhook(username, status, ip):
-    if not WEBHOOK_URL or "ใส่_URL" in WEBHOOK_URL: return
+    if not WEBHOOK_URL or "https://discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS" in WEBHOOK_URL: return
     
     color = 65280 if status == "SUCCESS" else 16711680 # เขียวถ้าถูก, แดงถ้าผิด
     payload = {
@@ -112,4 +112,5 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
