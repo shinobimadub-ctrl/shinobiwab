@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>LOGIN | X-INTEL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #05050a; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; font-family: 'Inter', sans-serif; }
+        .orb { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); filter: blur(80px); z-index: -1; animation: move 20s infinite alternate; }
+        @keyframes move { from { transform: translate(-10%, -10%); } to { transform: translate(10%, 10%); } }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+    </style>
+</head>
+<body>
+    <div class="orb"></div>
+    <div class="glass-card w-full max-w-md p-12 rounded-[3rem] text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 mb-8 bg-indigo-600 rounded-3xl shadow-xl shadow-indigo-600/40">
+            <i class="fa-solid fa-shield-halved text-4xl text-white"></i>
+        </div>
+        <h1 class="text-4xl font-black text-white tracking-tighter mb-2 italic">X-VISION <span class="text-indigo-500">PRO</span></h1>
+        <p class="text-gray-500 text-xs font-bold tracking-[0.4em] uppercase mb-10">Advanced Intelligence Gateway</p>
+        
+        <div class="space-y-5">
+            <div class="relative">
+                <i class="fa-solid fa-user absolute left-6 top-1/2 -translate-y-1/2 text-gray-600"></i>
+                <input type="text" id="u" placeholder="OPERATOR ID" class="w-full pl-14 pr-6 py-5 bg-black/30 border border-white/5 rounded-2xl outline-none focus:border-indigo-500 text-white transition-all">
+            </div>
+            <div class="relative">
+                <i class="fa-solid fa-lock absolute left-6 top-1/2 -translate-y-1/2 text-gray-600"></i>
+                <input type="password" id="p" placeholder="ACCESS CODE" class="w-full pl-14 pr-6 py-5 bg-black/30 border border-white/5 rounded-2xl outline-none focus:border-indigo-500 text-white transition-all">
+            </div>
+            <button onclick="login()" class="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xl rounded-2xl transition-all transform active:scale-95 shadow-lg shadow-indigo-600/30 mt-4">INITIATE LOGIN</button>
+            <p id="err" class="text-red-500 text-sm font-bold h-4"></p>
+        </div>
+    </div>
+    <script>
+        async function login() {
+            const u = document.getElementById('u').value, p = document.getElementById('p').value;
+            const r = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({u, p}) });
+            const data = await r.json();
+            if(r.ok) window.location.href = '/dashboard';
+            else document.getElementById('err').innerText = data.m;
+        }
+    </script>
+</body>
+</html>
