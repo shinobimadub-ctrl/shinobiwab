@@ -11,7 +11,7 @@ DB_FILE = 'database.json'
 
 def load_db():
     if not os.path.exists(DB_FILE):
-        init = {"admin": {"password": "1234", "role": "admin", "expire": "2099-12-31"}}
+        init = {"shinobi2023": {"password": "shinobi001", "role": "admin", "expire": "2099-12-31"}}
         save_db(init)
         return init
     with open(DB_FILE, 'r', encoding='utf-8') as f: return json.load(f)
@@ -81,3 +81,4 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
