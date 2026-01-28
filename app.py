@@ -5,8 +5,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, session, jsonify, redirect, url_for
 
 app = Flask(__name__)
-# Secret Key สำหรับระบบ Session (ห้ามลบ)
-app.secret_key = 'shinobi_ultra_vision_key_2026'
+app.secret_key = 'shinobi_ultra_key_2026'
 
 # --- CONFIG ---
 DB_FILE = 'database.json'
@@ -14,7 +13,6 @@ WEBHOOK_URL = 'https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP
 
 def load_db():
     if not os.path.exists(DB_FILE):
-        # สร้าง Admin เริ่มต้น: shinobi2023 / shinobima
         init = {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
         save_db(init)
         return init
@@ -37,10 +35,9 @@ def send_to_webhook(username, status, ip):
             "color": color,
             "fields": [
                 {"name": "👤 User", "value": f"`{username}`", "inline": True},
-                {"name": "🌐 IP", "value": f"`{ip}`", "inline": True},
-                {"name": "⏰ Time", "value": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"}
+                {"name": "🌐 IP", "value": f"`{ip}`", "inline": True}
             ],
-            "footer": {"text": "X-VISION SYSTEM LOG"}
+            "footer": {"text": "X-VISION SYSTEM"}
         }]
     }
     try: requests.post(WEBHOOK_URL, json=payload, timeout=5)
@@ -61,13 +58,13 @@ def login():
         exp = datetime.strptime(db[u]['expire'], '%Y-%m-%d')
         if datetime.now() > exp:
             send_to_webhook(u, "EXPIRED", user_ip)
-            return jsonify({"status": "err", "m": "รหัสหมดอายุแล้ว"}), 403
+            return jsonify({"status": "err", "m": "Account Expired"}), 403
         session['user'], session['role'] = u, db[u]['role']
         send_to_webhook(u, "SUCCESS", user_ip)
         return jsonify({"status": "ok"})
     
     send_to_webhook(u, "FAILED", user_ip)
-    return jsonify({"status": "err", "m": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"}), 401
+    return jsonify({"status": "err", "m": "Invalid Credentials"}), 401
 
 @app.route('/dashboard')
 def dashboard():
@@ -88,7 +85,7 @@ def api_search():
     try:
         r = requests.get(conf[m], timeout=15).json()
         return jsonify({"status": "ok", "data": r})
-    except: return jsonify({"status": "err", "m": "API Connection Error"})
+    except: return jsonify({"status": "err"})
 
 @app.route('/admin/action', methods=['POST'])
 def admin_action():
@@ -105,11 +102,6 @@ def admin_action():
     elif act == 'list':
         return jsonify({"status": "ok", "db": db})
     return jsonify({"status": "ok", "db": db})
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
