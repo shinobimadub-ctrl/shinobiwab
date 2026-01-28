@@ -9,13 +9,13 @@ app.secret_key = 'cyber_ultra_fixed_key_2026'
 
 # --- CONFIG ---
 DB_FILE = 'database.json'
-WEBHOOK_URL = 'ใส่_URL_WEBHOOK_ของคูณตรงนี้' 
+WEBHOOK_URL = 'https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS' 
 
 # ฟังก์ชันโหลดข้อมูลจากไฟล์ (ป้องกันรหัสหาย)
 def load_db():
     if not os.path.exists(DB_FILE):
         # ถ้าไม่มีไฟล์ ให้สร้าง Admin เริ่มต้น
-        init = {"admin": {"password": "1234", "role": "admin", "expire": "2099-12-31"}}
+        init = {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
         with open(DB_FILE, 'w', encoding='utf-8') as f:
             json.dump(init, f, indent=4, ensure_ascii=False)
         return init
@@ -31,7 +31,7 @@ def save_db(data):
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 def send_to_webhook(username, status, ip):
-    if not WEBHOOK_URL or "ใส่_URL" in WEBHOOK_URL: return
+    if not WEBHOOK_URL or "https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS" in WEBHOOK_URL: return
     color = 65280 if status == "SUCCESS" else 16711680
     payload = {
         "embeds": [{
@@ -123,3 +123,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True, port=10000)
+
