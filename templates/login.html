@@ -2,41 +2,175 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>X-VISION | LOGIN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-VISION PRO | SECURE GATEWAY</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Prompt&display=swap');
-        body { background: #050508; font-family: 'Prompt', sans-serif; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .captcha { letter-spacing: 10px; font-family: 'Orbitron'; background: #111; color: #6366f1; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Prompt:wght@300;600&display=swap');
+        
+        :root {
+            --primary: #6366f1;
+            --bg-dark: #020205;
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            font-family: 'Prompt', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        .cyber-font { font-family: 'Orbitron', sans-serif; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(99, 102, 241, 0.05);
+        }
+
+        .input-glow:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .captcha-box {
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(0, 0, 0, 0.2),
+                rgba(0, 0, 0, 0.2) 10px,
+                rgba(0, 0, 0, 0.3) 10px,
+                rgba(0, 0, 0, 0.3) 20px
+            );
+            letter-spacing: 8px;
+            user-select: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shine::after {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: 0.5s;
+        }
+        .btn-shine:hover::after { left: 100%; }
     </style>
 </head>
 <body>
-    <div class="glass p-12 rounded-[3rem] w-full max-w-md shadow-2xl">
-        <h1 class="text-3xl font-black text-center mb-10 tracking-tighter" style="font-family:'Orbitron'">X-VISION</h1>
-        <div class="space-y-6">
-            <input type="text" id="u" placeholder="USERNAME" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-indigo-500">
-            <input type="password" id="p" placeholder="PASSWORD" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-indigo-500">
-            <div class="flex gap-4 items-center">
-                <div id="cp-code" class="captcha flex-1 p-4 rounded-2xl text-center font-bold text-xl"></div>
-                <button onclick="gen()" class="text-gray-500"><i class="fa-solid fa-sync"></i></button>
+
+    <div class="glass-panel w-full max-w-md p-10 rounded-[3.5rem] relative z-10 mx-4">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 mb-4 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-600/40">
+                <i class="fa-solid fa-fingerprint text-3xl text-white"></i>
             </div>
-            <input type="text" id="cp-in" placeholder="CAPTCHA" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-center font-bold">
-            <button onclick="auth()" class="w-full py-5 bg-indigo-600 rounded-2xl font-black shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-all">LOGIN SYSTEM</button>
+            <h1 class="cyber-font text-2xl font-black text-white italic tracking-tighter mb-1 uppercase">
+                X-VISION <span class="text-indigo-500">PRO</span>
+            </h1>
+            <p class="text-[9px] text-indigo-400 font-bold tracking-[0.4em] uppercase opacity-80">Secure Intel Gateway</p>
         </div>
-        <p id="err" class="text-red-500 text-center mt-4 text-xs font-bold"></p>
+
+        <div class="space-y-4">
+            <div class="relative">
+                <i class="fa-solid fa-user-ninja absolute left-5 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                <input type="text" id="u" placeholder="OPERATOR ID" 
+                    class="w-full pl-12 pr-6 py-4 bg-black/40 border border-white/10 rounded-2xl outline-none text-white input-glow transition-all font-medium placeholder:text-gray-600">
+            </div>
+
+            <div class="relative">
+                <i class="fa-solid fa-key absolute left-5 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                <input type="password" id="p" placeholder="ACCESS CODE" 
+                    class="w-full pl-12 pr-6 py-4 bg-black/40 border border-white/10 rounded-2xl outline-none text-white input-glow transition-all font-medium placeholder:text-gray-600">
+            </div>
+
+            <div class="flex gap-3 items-center mt-6">
+                <div id="captcha-code" class="captcha-box flex-1 py-4 rounded-2xl text-center text-xl font-black text-indigo-400 cyber-font italic border border-indigo-500/20">
+                    </div>
+                <button onclick="genCaptcha()" class="w-12 h-12 flex items-center justify-center text-gray-500 hover:text-indigo-400 transition-colors">
+                    <i class="fa-solid fa-rotate-right text-xl"></i>
+                </button>
+            </div>
+            
+            <input type="text" id="cp-input" placeholder="VERIFY CAPTCHA" 
+                class="w-full py-4 bg-black/40 border border-white/10 rounded-2xl outline-none text-center text-white cyber-font tracking-[5px] input-glow transition-all placeholder:text-gray-700 placeholder:tracking-normal">
+
+            <button onclick="handleLogin()" 
+                class="btn-shine w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg rounded-2xl shadow-xl shadow-indigo-600/20 transition-all active:scale-95 mt-4">
+                INITIATE SESSION
+            </button>
+
+            <p id="err" class="text-red-500 text-xs text-center font-bold h-4 mt-2"></p>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-white/5 text-center">
+            <p class="text-[9px] text-gray-600 font-bold tracking-widest uppercase italic">Unauthorized access is strictly prohibited</p>
+        </div>
     </div>
+
+    <div class="absolute w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-1"></div>
+
     <script>
-        let code = "";
-        function gen() { code = Math.floor(1000 + Math.random() * 9000).toString(); document.getElementById('cp-code').innerText = code; }
-        async function auth() {
-            const u = document.getElementById('u').value, p = document.getElementById('p').value, ci = document.getElementById('cp-in').value;
-            if(ci !== code) { alert("Captcha Invalid"); gen(); return; }
-            const r = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({u, p}) });
-            const d = await r.json();
-            if(d.status === 'ok') location.href='/dashboard'; else document.getElementById('err').innerText = d.m;
+        let currentCaptcha = "";
+
+        // ฟังก์ชันสร้าง Captcha
+        function genCaptcha() {
+            currentCaptcha = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('captcha-code').innerText = currentCaptcha;
+            document.getElementById('cp-input').value = "";
         }
-        window.onload = gen;
+
+        async function handleLogin() {
+            const u = document.getElementById('u').value;
+            const p = document.getElementById('p').value;
+            const cp = document.getElementById('cp-input').value;
+            const err = document.getElementById('err');
+
+            // ตรวจสอบ Captcha ก่อนส่ง Request
+            if (cp !== currentCaptcha) {
+                err.innerText = "CAPTCHA VERIFICATION FAILED";
+                genCaptcha();
+                return;
+            }
+
+            err.innerText = "ESTABLISHING CONNECTION...";
+            
+            try {
+                const r = await fetch('/login', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({u, p}) 
+                });
+                const data = await r.json();
+                
+                if (r.ok) {
+                    window.location.href = '/dashboard';
+                } else {
+                    err.innerText = data.m.toUpperCase();
+                    genCaptcha();
+                }
+            } catch (e) {
+                err.innerText = "SYSTEM OFFLINE";
+            }
+        }
+
+        // เริ่มต้นสร้าง Captcha เมื่อโหลดหน้า
+        window.onload = genCaptcha;
     </script>
 </body>
 </html>
