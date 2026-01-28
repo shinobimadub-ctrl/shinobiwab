@@ -1,152 +1,66 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-VISION | SECURE LOGIN</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Prompt:wght@300;600&display=swap');
-        
-        body { 
-            /* ใส่รูปพื้นหลังที่คุณส่งมา */
-            background: url('https://img2.pic.in.th/622387587_122213646362311703_8906792467822727511_n.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            font-family: 'Prompt', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
+<meta charset="UTF-8">
+<title>Login | X-VISION PRO</title>
+<script src="https://cdn.tailwindcss.com"></script>
 
-        /* เพิ่ม Overlay สีดำจางๆ เพื่อให้ฟอร์มเด่นขึ้น */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1;
-        }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Prompt:wght@300;400;700&display=swap');
 
-        .cyber-font { font-family: 'Orbitron', sans-serif; }
-
-        .glass-card {
-            background: rgba(10, 10, 20, 0.7);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            position: relative;
-            z-index: 10;
-        }
-
-        .input-style {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-        }
-
-        .input-style:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        .captcha-box {
-            background: rgba(99, 102, 241, 0.1);
-            letter-spacing: 5px;
-            border: 1px dashed rgba(99, 102, 241, 0.5);
-        }
-    </style>
+body{
+    font-family:'Prompt',sans-serif;
+    min-height:100vh;
+    background:url("https://img2.pic.in.th/622387587_122213646362311703_8906792467822727511_n.jpg")
+        center/cover fixed no-repeat;
+}
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(0,255,255,.3), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255,0,255,.3), transparent 40%),
+        rgba(0,0,0,.7);
+    z-index:-2;
+}
+body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    backdrop-filter:blur(6px);
+    z-index:-1;
+}
+.glass{
+    background:rgba(10,15,30,.65);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 0 30px rgba(0,255,255,.25);
+}
+.neon{
+    font-family:'Orbitron',sans-serif;
+    text-shadow:0 0 10px cyan,0 0 25px magenta;
+}
+</style>
 </head>
-<body>
 
-    <div class="glass-card w-full max-w-md p-10 rounded-[3rem] mx-4 border-t border-indigo-500/30">
-        <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-20 h-20 mb-6 bg-indigo-600 rounded-3xl shadow-2xl shadow-indigo-600/40">
-                <i class="fa-solid fa-user-secret text-4xl text-white"></i>
-            </div>
-            <h1 class="cyber-font text-3xl font-black text-white tracking-tighter italic">X-VISION <span class="text-indigo-500">PRO</span></h1>
-            <p class="text-[10px] text-gray-400 font-bold tracking-[0.5em] uppercase mt-2">Advanced Intelligence Portal</p>
-        </div>
+<body class="flex items-center justify-center">
 
-        <div class="space-y-5">
-            <div class="relative">
-                <i class="fa-solid fa-id-badge absolute left-5 top-1/2 -translate-y-1/2 text-indigo-400"></i>
-                <input type="text" id="u" placeholder="OPERATOR ID" 
-                    class="input-style w-full pl-14 pr-6 py-5 rounded-2xl outline-none text-white font-medium placeholder:text-gray-600">
-            </div>
+<form class="glass p-12 rounded-3xl w-full max-w-md">
+    <h1 class="neon text-4xl font-black text-center mb-8">
+        X-VISION PRO
+    </h1>
 
-            <div class="relative">
-                <i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-indigo-400"></i>
-                <input type="password" id="p" placeholder="ACCESS CODE" 
-                    class="input-style w-full pl-14 pr-6 py-5 rounded-2xl outline-none text-white font-medium placeholder:text-gray-600">
-            </div>
+    <input placeholder="Username"
+        class="w-full mb-4 p-4 rounded-xl bg-black/60 border border-white/10 text-white outline-none">
 
-            <div class="flex gap-3 items-center mt-2">
-                <div id="captcha-display" class="captcha-box flex-1 py-4 rounded-2xl text-center text-xl font-black text-indigo-400 cyber-font">
-                    </div>
-                <button onclick="genCaptcha()" class="w-12 h-12 flex items-center justify-center text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-sync-alt"></i>
-                </button>
-            </div>
-            <input type="text" id="cp-input" placeholder="CONFIRM CAPTCHA" 
-                class="input-style w-full py-4 rounded-2xl text-center text-white cyber-font font-bold tracking-[4px] outline-none">
+    <input type="password" placeholder="Password"
+        class="w-full mb-6 p-4 rounded-xl bg-black/60 border border-white/10 text-white outline-none">
 
-            <button onclick="login()" 
-                class="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xl rounded-2xl transition-all transform active:scale-95 shadow-xl shadow-indigo-600/30 mt-4">
-                INITIATE SCAN
-            </button>
+    <button class="w-full py-4 rounded-xl bg-indigo-600 font-black hover:bg-indigo-500">
+        LOGIN
+    </button>
+</form>
 
-            <p id="err" class="text-red-500 text-xs font-bold text-center h-4"></p>
-        </div>
-
-        <div class="mt-8 pt-6 border-t border-white/5 text-center">
-            <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">© 2026 SHINOBI ULTRA SECURITY</p>
-        </div>
-    </div>
-
-    <script>
-        let code = "";
-        
-        function genCaptcha() {
-            code = Math.floor(1000 + Math.random() * 9000).toString();
-            document.getElementById('captcha-display').innerText = code;
-            document.getElementById('cp-input').value = "";
-        }
-
-        async function login() {
-            const u = document.getElementById('u').value;
-            const p = document.getElementById('p').value;
-            const ci = document.getElementById('cp-input').value;
-            const err = document.getElementById('err');
-
-            if(ci !== code) {
-                err.innerText = "CAPTCHA VERIFICATION FAILED";
-                genCaptcha();
-                return;
-            }
-
-            const r = await fetch('/login', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({u, p}) 
-            });
-            const data = await r.json();
-
-            if(r.ok) {
-                window.location.href = '/dashboard';
-            } else {
-                err.innerText = data.m.toUpperCase();
-                genCaptcha();
-            }
-        }
-
-        window.onload = genCaptcha;
-    </script>
 </body>
 </html>
