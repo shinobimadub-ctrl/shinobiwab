@@ -1,75 +1,130 @@
-from flask import Flask, render_template, request, jsonify, redirect
-import requests, jwt, datetime, csv, io
+import requests
+import json
+import os
+from datetime import datetime, timedelta
+from flask import Flask, render_template, request, session, jsonify, redirect, url_for
 
 app = Flask(__name__)
-SECRET = "XVISION_JWT_KEY"
+app.secret_key = 'shinobi_secret_key_2026' # ต้องมีเพื่อให้ Login ติด
 
-API = {
-    "trans": "https://slumzick.xyz/api12.php",
-    "true": "https://apitu.psnw.xyz/index.php",
-    "dopa": "http://85.203.4.103:6868/api/v1/whoshop-ssf"
-}
+# --- CONFIG ---
+DB_FILE = 'database.json'
+# URL Webhook ของคุณ
+WEBHOOK_URL = 'https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS'
 
-USERS = {"admin":"1234"}
-
-# ---------- JWT ----------
-def create_token(user):
-    return jwt.encode({
-        "user": user,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=6)
-    }, SECRET, algorithm="HS256")
-
-def verify(req):
-    token = req.headers.get("Authorization")
-    if not token: return None
+def load_db():
+    if not os.path.exists(DB_FILE):
+        # สร้าง Admin ตามภาพ: shinobi2023 / shinobima
+        init = {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            json.dump(init, f, indent=4, ensure_ascii=False)
+        return init
     try:
-        return jwt.decode(token, SECRET, algorithms=["HS256"])
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
     except:
-        return None
+        return {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
 
-# ---------- ROUTES ----------
-@app.route("/")
-def login_page():
-    return render_template("login.html")
+def save_db(data):
+    with open(DB_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
-@app.route("/login", methods=["POST"])
+def send_to_webhook(username, status, ip):
+    # แก้ไขบัคบรรทัดที่ 34: เช็กแค่ว่ามี URL หรือไม่พอ ไม่ต้องใส่ "url" in WEBHOOK_URL
+    if not WEBHOOK_URL: 
+        return
+        
+    color = 65280 if status == "SUCCESS" else 16711680
+    payload = {
+        "embeds": [{
+            "title": f"🔐 Login Monitoring: {status}",
+            "color": color,
+            "fields": [
+                {"name": "👤 User", "value": f"`{username}`", "inline": True},
+                {"name": "🌐 IP", "value": f"`{ip}`", "inline": True},
+                {"name": "⏰ Time", "value": f"{datetime.now().strftime('%H:%M:%S')}"}
+            ],
+            "footer": {"text": "X-VISION SYSTEM LOG"}
+        }]
+    }
+    try:
+        requests.post(WEBHOOK_URL, json=payload, timeout=5)
+    except Exception as e:
+        print(f"Webhook Error: {e}")
+
+@app.route('/')
+def index():
+    return redirect(url_for('dashboard')) if 'user' in session else render_template('login.html')
+
+@app.route('/login', methods=['POST'])
 def login():
-    u = request.form.get("username")
-    p = request.form.get("password")
-    if USERS.get(u) == p:
-        return jsonify({"token": create_token(u)})
-    return jsonify({"error":"login failed"}),401
+    data = request.get_json()
+    u, p = data.get('u'), data.get('p')
+    db = load_db()
+    
+    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    
+    if u in db and str(db[u]['password']) == str(p):
+        exp_date = datetime.strptime(db[u]['expire'], '%Y-%m-%d')
+        if datetime.now() > exp_date:
+            send_to_webhook(u, "EXPIRED", user_ip)
+            return jsonify({"status": "err", "m": "รหัสหมดอายุแล้ว"}), 403
+        
+        session['user'] = u
+        session['role'] = db[u]['role']
+        send_to_webhook(u, "SUCCESS", user_ip)
+        return jsonify({"status": "ok"})
+    
+    send_to_webhook(u, "FAILED", user_ip)
+    return jsonify({"status": "err", "m": "รหัสผ่านไม่ถูกต้อง"})
 
-@app.route("/dashboard")
-def dash():
-    return render_template("index.html")
+@app.route('/dashboard')
+def dashboard():
+    if 'user' not in session: return redirect(url_for('login'))
+    return render_template('dashboard.html', role=session.get('role'), user=session.get('user'))
 
-@app.route("/api/search", methods=["POST"])
-def search():
-    if not verify(request):
-        return jsonify({"error":"unauthorized"}),401
+@app.route('/api/search', methods=['POST'])
+def api_search():
+    if 'user' not in session: return jsonify({"status": "err"}), 403
+    p = request.get_json()
+    m, v = p.get('m'), p.get('v')
+    # ... API Config เหมือนเดิม ...
+    conf = {
+        "dopa": f"http://85.203.4.103:6868/api/v1/whoshop-ssf?pid={v}&api_key=TRUE-AFYX83CWIS8H",
+        "nhso": f"http://85.203.4.103:6969/api/v1/whoshop?pid={v}&api_key=NHSO-FN2P7BQ46UH6",
+        "trans": f"https://slumzick.xyz/api12.php?token=Kill221&value={v}",
+        "true": f"https://apitu.psnw.xyz/index.php?type=phone&mode=sff&value={v}"
+    }
+    try:
+        r = requests.get(conf[m], timeout=15).json()
+        return jsonify({"status": "ok", "data": r})
+    except: return jsonify({"status": "err"})
 
-    data=request.json
-    m=data["m"]
-    v=data["v"]
+@app.route('/admin/action', methods=['POST'])
+def admin_action():
+    if session.get('role') != 'admin': return jsonify({"status": "denied"}), 403
+    req = request.get_json()
+    act = req.get('act')
+    db = load_db()
+    
+    if act == 'add':
+        u, p, d = req['u'], req['p'], int(req['d'])
+        db[u] = {"password": p, "role": "user", "expire": (datetime.now() + timedelta(days=d)).strftime('%Y-%m-%d')}
+        save_db(db)
+    elif act == 'del':
+        if req['u'] != 'shinobi2023':
+            db.pop(req['u'], None)
+            save_db(db)
+    elif act == 'list':
+        return jsonify({"status": "ok", "db": db})
+    
+    return jsonify({"status": "ok", "db": db})
 
-    if m=="trans":
-        r=requests.get(API["trans"],params={"token":"Kill221","value":v})
-    elif m=="true":
-        r=requests.get(API["true"],params={"type":"phone","value":v,"mode":"sff"})
-    elif m=="dopa":
-        r=requests.post(API["dopa"],json={"keyword":v})
-    else:
-        return jsonify({"error":"mode error"})
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
-    return jsonify(r.json())
-
-@app.route("/export/csv", methods=["POST"])
-def export_csv():
-    data=request.json
-    output=io.StringIO()
-    writer=csv.writer(output)
-    writer.writerow(data[0].keys())
-    for row in data:
-        writer.writerow(row.values())
-    return output.getvalue(),200,{"Content-Type":"text/csv"}
+if __name__ == '__main__':
+    # รัน Port 10000 ตามภาพ
+    app.run(debug=True, host='0.0.0.0', port=10000)
