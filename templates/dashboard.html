@@ -2,158 +2,218 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>X-VISION PRO | CORE SYSTEM</title>
+    <title>DASHBOARD | X-VISION</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Prompt:wght@300;400;700&display=swap');
-        
-        body { 
-            background: url('https://img2.pic.in.th/622387587_122213646362311703_8906792467822727511_n.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: #e2e8f0; font-family: 'Prompt', sans-serif; overflow: hidden; height: 100vh;
-        }
-
-        body::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); z-index: -1;
-        }
-
-        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        body { background: #020205; color: #e2e8f0; font-family: 'Prompt', sans-serif; overflow: hidden; }
         .cyber-font { font-family: 'Orbitron', sans-serif; }
-        .tab-btn.active { background: linear-gradient(90deg, rgba(99, 102, 241, 0.3), transparent); border-left: 4px solid #6366f1; color: white; }
-        .mode-btn.active { background: #6366f1 !important; color: white !important; box-shadow: 0 0 15px rgba(99, 102, 241, 0.5); }
-        .res-card { animation: zoomIn 0.3s ease-out; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); }
-        @keyframes zoomIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .tab-btn.active { background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), transparent); border-left: 4px solid #6366f1; color: white; }
+        .res-card { animation: zoomIn 0.4s ease-out forwards; }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #312e81; border-radius: 10px; }
     </style>
 </head>
-<body class="flex p-5 gap-5">
+<body class="flex h-screen p-5 gap-5">
 
     <aside class="w-80 glass rounded-[3rem] p-8 flex flex-col shadow-2xl">
         <div class="flex items-center gap-4 mb-14">
-            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center animate-pulse shadow-lg shadow-indigo-500/50">
+            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30">
                 <i class="fa-solid fa-bolt-lightning text-white text-2xl"></i>
             </div>
             <div>
-                <h2 class="cyber-font text-xl font-black italic">X-VISION<span class="text-indigo-500 font-black">PRO</span></h2>
-                <p class="text-[8px] text-gray-400 tracking-[0.4em] font-bold uppercase">System v3.0</p>
+                <h2 class="cyber-font text-xl font-black">VISION<span class="text-indigo-500">PRO</span></h2>
+                <p class="text-[8px] text-gray-500 tracking-[0.4em] font-bold">SYSTEM v2.0</p>
             </div>
         </div>
 
-        <nav class="flex-1 space-y-2 font-bold">
-            <button onclick="switchTab('search')" id="t-search" class="tab-btn active w-full flex p-5 rounded-2xl items-center hover:bg-white/5 transition-all text-sm uppercase tracking-widest">
-                <i class="fa-solid fa-satellite-dish mr-4"></i> ค้นหาฐานข้อมูล
-            </button>
-            <button onclick="switchTab('admin')" id="t-admin" class="tab-btn w-full flex p-5 rounded-2xl items-center text-gray-400 hover:bg-white/5 transition-all text-sm uppercase tracking-widest">
-                <i class="fa-solid fa-user-shield mr-4"></i> จัดการผู้ใช้
-            </button>
+        <nav class="flex-1 space-y-2">
+            <button onclick="switchTab('search')" id="t-search" class="tab-btn active w-full flex p-5 rounded-2xl items-center transition-all hover:bg-white/5"><i class="fa-solid fa-magnifying-glass-location mr-4"></i> ค้นหาข้อมูล</button>
+            {% if role == 'admin' %}
+            <button onclick="switchTab('admin')" id="t-admin" class="tab-btn w-full flex p-5 rounded-2xl items-center text-gray-400 transition-all hover:bg-white/5"><i class="fa-solid fa-user-shield mr-4"></i> แอดมินจัดการ</button>
+            {% endif %}
         </nav>
 
         <div class="mt-auto space-y-4">
             <div class="p-5 bg-black/40 rounded-3xl border border-white/5">
-                <p class="text-[9px] text-indigo-400 font-bold mb-1 uppercase tracking-widest italic">User Node</p>
-                <p class="text-sm font-black text-white cyber-font truncate">{{ user }}</p>
+                <p class="text-[9px] text-gray-500 font-bold mb-1 uppercase tracking-widest">Operator</p>
+                <p class="text-sm font-bold text-indigo-400 cyber-font underline decoration-indigo-500/30">{{ user }}</p>
             </div>
-            <button class="w-full py-4 rounded-2xl bg-red-600/20 text-red-500 font-black hover:bg-red-600 hover:text-white transition-all text-xs tracking-widest uppercase">Terminate Session</button>
+            <a href="/logout" class="block w-full py-4 rounded-2xl bg-red-500/10 text-red-500 text-center font-black hover:bg-red-500 hover:text-white transition-all">LOGOUT</a>
         </div>
     </aside>
 
-    <main class="flex-1 glass rounded-[3rem] p-12 overflow-y-auto relative">
+    <main class="flex-1 glass rounded-[3rem] p-12 overflow-y-auto shadow-2xl relative">
+        
         <div id="sec-search">
             <div class="flex justify-between items-center mb-10">
                 <div>
-                    <h1 class="text-5xl font-black cyber-font mb-2 uppercase italic tracking-tighter">Query <span class="text-indigo-500">Center</span></h1>
-                    <p class="text-gray-400 italic">Connected to X-Core Shipmile & DOPA Nodes</p>
+                    <h1 class="text-5xl font-black cyber-font mb-2 tracking-tighter uppercase">Query Center</h1>
+                    <p class="text-gray-500 font-light">ดึงข้อมูลระดับลึกจากฐานข้อมูลที่เชื่อมต่อไว้</p>
                 </div>
                 <div class="flex bg-black/60 p-1.5 rounded-2xl border border-white/10 gap-1">
-                    <button onclick="m='dopa'" id="m-dopa" class="mode-btn px-6 py-2 rounded-xl text-gray-500 text-[10px] font-black transition-all">DOPA</button>
-                    <button onclick="m='trans'" id="m-trans" class="mode-btn active px-6 py-2 rounded-xl text-[10px] font-black transition-all">TRANSPORT</button>
-                    <button onclick="m='true'" id="m-true" class="mode-btn px-6 py-2 rounded-xl text-gray-500 text-[10px] font-black transition-all">TRUE SFF</button>
+                    <button onclick="m='dopa'" id="m-dopa" class="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-xs mode-btn">DOPA</button>
+                    <button onclick="m='nhso'" id="m-nhso" class="px-6 py-2 rounded-xl text-gray-500 font-bold text-xs mode-btn">NHSO</button>
+                    <button onclick="m='trans'" id="m-trans" class="px-6 py-2 rounded-xl text-gray-500 font-bold text-xs mode-btn">TRANSPORT</button>
+                    <button onclick="m='true'" id="m-true" class="px-6 py-2 rounded-xl text-gray-500 font-bold text-xs mode-btn">TRUE SFF</button>
                 </div>
             </div>
 
             <div class="relative max-w-5xl mb-12">
-                <input type="text" id="v" placeholder="กรอกชื่อ/เบอร์โทร เพื่อเริ่มการสแกน..." 
-                       class="w-full bg-black/60 border border-white/10 p-8 pr-56 rounded-[2.5rem] text-2xl cyber-font outline-none focus:border-indigo-500 transition-all shadow-2xl text-white">
-                <button onclick="doSearch()" class="absolute right-4 top-4 bottom-4 bg-indigo-600 hover:bg-indigo-500 px-12 rounded-[1.8rem] font-black text-xl cyber-font transition-all active:scale-95 shadow-lg shadow-indigo-600/30">SCAN</button>
+                <input type="text" id="v" placeholder="กรอกข้อมูลเป้าหมายเพื่อเริ่มการสแกน..." 
+                       class="w-full bg-white/5 border border-white/10 p-8 pr-56 rounded-[2.5rem] text-2xl cyber-font outline-none focus:border-indigo-500 focus:bg-white/[0.07] transition-all">
+                <button onclick="doSearch()" class="absolute right-4 top-4 bottom-4 bg-indigo-600 hover:bg-indigo-500 px-12 rounded-[1.8rem] font-black text-xl cyber-font shadow-lg shadow-indigo-600/30 active:scale-95 transition-all">SCAN</button>
             </div>
 
-            <div id="ld" class="hidden text-center py-20">
-                <div class="w-16 h-16 border-4 border-t-indigo-500 border-white/10 rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="cyber-font text-indigo-500 text-xs animate-pulse">Decrypting Data Streams...</p>
-            </div>
-            
+            <div id="ld" class="hidden text-center py-20"><div class="w-16 h-16 border-4 border-t-indigo-500 border-white/10 rounded-full animate-spin mx-auto"></div></div>
             <div id="res" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        </div>
+
+        <div id="sec-admin" class="hidden">
+            <h1 class="text-5xl font-black cyber-font text-indigo-500 mb-10 uppercase">Admin Access</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div class="glass p-10 rounded-[3rem] border-t-4 border-indigo-500">
+                    <h3 class="text-xl font-bold mb-8 italic">เพิ่มรหัสใช้งาน</h3>
+                    <div class="space-y-4">
+                        <input type="text" id="nu" placeholder="USER ID" class="w-full p-5 bg-white/5 border border-white/5 rounded-2xl outline-none focus:border-indigo-500">
+                        <input type="text" id="np" placeholder="PASSWORD" class="w-full p-5 bg-white/5 border border-white/5 rounded-2xl outline-none focus:border-indigo-500">
+                        <input type="number" id="nd" placeholder="จำนวนวัน (เช่น 7)" class="w-full p-5 bg-white/5 border border-white/5 rounded-2xl outline-none focus:border-indigo-500">
+                        <button onclick="adm('add')" class="w-full p-5 bg-indigo-600 rounded-2xl font-black hover:bg-indigo-500 transition-all">ยืนยันการสร้าง</button>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 glass p-10 rounded-[3rem] border-t-4 border-emerald-500">
+                    <h3 class="text-xl font-bold mb-8 italic">ผู้ใช้งานในระบบ</h3>
+                    <div id="user-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script>
-        let m = 'trans'; // เริ่มต้นที่โหมด Transport ตามที่คุณส่ง API มา
+        let m = 'dopa';
+        function switchTab(t) {
+            document.getElementById('sec-search').classList.toggle('hidden', t !== 'search');
+            document.getElementById('sec-admin').classList.toggle('hidden', t !== 'admin');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('t-'+t).classList.add('active');
+            if(t==='admin') refreshAdmin();
+        }
 
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.onclick = function() {
-                document.querySelectorAll('.mode-btn').forEach(b => { b.classList.remove('active'); b.classList.add('text-gray-500'); });
-                this.classList.add('active'); this.classList.remove('text-gray-500');
-                m = this.id.split('-')[1];
-            }
-        });
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', function(){
+            document.querySelectorAll('.mode-btn').forEach(b => { b.classList.remove('bg-indigo-600'); b.classList.add('text-gray-500'); });
+            this.classList.add('bg-indigo-600'); this.classList.remove('text-gray-500');
+        }));
 
         async function doSearch() {
             const val = document.getElementById('v').value; if(!val) return;
-            document.getElementById('ld').classList.remove('hidden');
-            document.getElementById('res').innerHTML = '';
-            
-            try {
-                const r = await fetch('/api/search', {
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({m, v:val})
-                });
-                const res = await r.json();
-                document.getElementById('ld').classList.add('hidden');
-                renderData(res);
-            } catch(e) {
-                document.getElementById('ld').classList.add('hidden');
-                alert('API Connection Failed');
-            }
+            document.getElementById('ld').classList.remove('hidden'); document.getElementById('res').innerHTML = '';
+            const r = await fetch('/api/search', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({m, v:val}) });
+            const res = await r.json(); document.getElementById('ld').classList.add('hidden');
+            renderData(res.data);
         }
 
-        function renderData(res) {
+        function renderData(data) {
             const resDiv = document.getElementById('res');
             let h = '';
-
-            // แสดงผลสำหรับโหมด Logistics/Transport (ข้อมูลที่คุณส่งมา)
-            if (m === 'trans' && res.logistics && res.logistics.history.mobileItems) {
-                res.logistics.history.mobileItems.forEach(item => {
-                    h += `
-                    <div class="res-card p-8 rounded-[2.5rem] border-t-4 border-indigo-600 shadow-2xl backdrop-blur-md">
-                        <div class="flex justify-between items-start mb-6">
-                            <span class="text-[10px] bg-indigo-600 px-3 py-1 rounded-full font-black uppercase tracking-tighter">Logistics Record</span>
-                            <span class="text-[9px] text-gray-500 font-bold uppercase">${item.created_at}</span>
+            if (m === 'true') {
+                const rs = data.results?.['response-data'] || data;
+                const ad = rs['address-list']?.CUSTOMER_ADDRESS || {};
+                h = `
+                <div class="res-card glass p-10 rounded-[3.5rem] col-span-full border-l-[16px] border-red-600 shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-20 -top-20 w-80 h-80 bg-red-600/10 blur-[100px] rounded-full"></div>
+                    <div class="flex flex-col md:flex-row justify-between mb-10 gap-6 relative">
+                        <div>
+                            <span class="bg-red-600/20 text-red-500 text-[10px] font-black px-4 py-1.5 rounded-full border border-red-500/20 uppercase tracking-widest">TRUE SFF INTELLIGENCE</span>
+                            <h2 class="text-6xl font-black mt-4 cyber-font">${rs.title}${rs.firstname} ${rs.lastname}</h2>
+                            <p class="text-3xl text-gray-500 font-mono mt-2 tracking-widest">${rs['id-number']}</p>
                         </div>
-                        <h2 class="text-3xl font-black text-white mb-1 italic">${item.name}</h2>
-                        <p class="text-xl text-indigo-400 font-mono tracking-widest font-bold mb-4 underline decoration-white/10">${item.mobile}</p>
-                        
-                        <div class="space-y-3 bg-black/40 p-5 rounded-2xl border border-white/5">
-                            <p class="text-xs text-gray-300 leading-relaxed font-bold italic uppercase">
-                                <i class="fa-solid fa-map-location-dot mr-2 text-indigo-500"></i>
-                                ${item.detail_address} ต.${item.district} อ.${item.city} จ.${item.province} ${item.postal_code}
-                            </p>
-                            <div class="flex gap-2">
-                                <span class="text-[9px] border border-white/10 px-2 py-1 rounded-lg text-gray-500">Source: ${res.logistics.source}</span>
-                                <span class="text-[9px] border border-white/10 px-2 py-1 rounded-lg text-gray-500">Node: ${item.store_id}</span>
+                        <div class="bg-white/5 p-6 rounded-[2rem] text-right border border-white/5 h-fit min-w-[200px]">
+                            <p class="text-[9px] text-gray-500 font-bold mb-1 uppercase tracking-tighter">Status</p>
+                            <p class="text-3xl font-black text-yellow-500 italic cyber-font">${rs['customer-level'] || 'NON-TOP'}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                        <div class="p-8 bg-black/40 rounded-[2.5rem] border border-white/5">
+                            <p class="text-xs text-red-500 font-black mb-5 uppercase tracking-widest italic border-b border-red-500/20 pb-2">Profile</p>
+                            <div class="space-y-4 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">วันเกิด:</span> <span class="font-bold">${rs.birthdate?.split('T')[0] || '-'}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">เพศ:</span> <span class="font-bold uppercase">${rs.gender || '-'}</span></div>
+                                <div class="flex justify-between text-red-400"><span class="text-gray-500">บัตรหมดอายุ:</span> <span class="font-black">${rs['id-expire-date']?.split('T')[0] || '-'}</span></div>
                             </div>
                         </div>
+                        <div class="p-8 bg-black/40 rounded-[2.5rem] border border-white/5">
+                            <p class="text-xs text-red-500 font-black mb-5 uppercase tracking-widest italic border-b border-red-500/20 pb-2">Contact</p>
+                            <div class="space-y-4 text-sm">
+                                <div class="flex justify-between items-center"><span class="text-gray-500">Main:</span> <span class="text-2xl font-black text-white">${rs['contact-number'] || '-'}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Mobile:</span> <span class="font-bold">${rs['contact-mobile-number'] || '-'}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Lang:</span> <span class="font-bold">${rs.language || 'TH'}</span></div>
+                            </div>
+                        </div>
+                        <div class="p-8 bg-black/40 rounded-[2.5rem] border border-white/5">
+                            <p class="text-xs text-red-500 font-black mb-5 uppercase tracking-widest italic border-b border-red-500/20 pb-2">Location</p>
+                            <p class="text-sm text-gray-300 leading-relaxed font-light">
+                                เลขที่ ${ad.number || '-'} หมู่ ${ad.moo || '-'} ${ad['building-name'] !== '-' ? ad['building-name'] : ''} <br>
+                                แขวง/ตำบล: <b>${ad['sub-district'] || '-'}</b> <br>
+                                เขต/อำเภอ: <b>${ad.district || '-'}</b> <br>
+                                จังหวัด: <b>${ad.province || '-'}</b> ${ad.zip || ''}
+                            </p>
+                        </div>
+                    </div>
+                </div>`;
+            } else if(m==='trans' && data.logistics) {
+                (data.logistics.history.mobileItems || []).forEach(i => {
+                    h += `<div class="res-card glass p-8 rounded-[2.5rem] border-l-4 border-indigo-500 shadow-xl">
+                        <div class="flex justify-between mb-4"><span class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">Courier Info</span><span class="text-[9px] text-gray-500">${i.created_at}</span></div>
+                        <h4 class="text-2xl font-black mb-1">${i.name}</h4>
+                        <p class="text-indigo-500 font-mono text-sm mb-4 tracking-widest">${i.mobile}</p>
+                        <p class="text-xs text-gray-400 leading-relaxed font-light"><i class="fa-solid fa-map-location mr-2"></i> ${i.detail_address} ${i.district} ${i.city} ${i.province} ${i.postal_code}</p>
                     </div>`;
                 });
             } else {
-                h = '<p class="col-span-full text-center py-20 text-gray-600 font-black cyber-font italic">-- DATA STREAM NOT FOUND --</p>';
+                const p = data.data?.personData || data;
+                h = `<div class="res-card glass p-12 rounded-[3rem] col-span-full border-t-8 border-indigo-600 shadow-2xl">
+                    <div class="flex flex-col md:flex-row gap-10 items-center mb-10">
+                        <div class="w-32 h-32 bg-indigo-500/10 rounded-[2rem] flex items-center justify-center text-6xl text-indigo-500 shadow-inner"><i class="fa-solid fa-address-card"></i></div>
+                        <div>
+                            <h2 class="text-6xl font-black cyber-font mb-1 tracking-tighter">${p.fullName || 'UNKNOWN'}</h2>
+                            <p class="text-3xl text-indigo-500/70 font-mono tracking-[0.4em] uppercase">${p.pid || '-'}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="p-8 bg-black/40 rounded-[2.5rem] border border-white/5">
+                            <p class="text-[10px] text-gray-500 font-black mb-3 uppercase tracking-widest">ทะเบียนสิทธิ์</p>
+                            <p class="text-3xl font-bold text-emerald-400">${p.mainInsclName || '-'}</p>
+                        </div>
+                        <div class="p-8 bg-black/40 rounded-[2.5rem] border border-white/5">
+                            <p class="text-[10px] text-gray-500 font-black mb-3 uppercase tracking-widest">ข้อมูลที่อยู่</p>
+                            <p class="text-gray-300 text-lg leading-relaxed font-light">${p.fullAddress || '-'}</p>
+                        </div>
+                    </div>
+                </div>`;
             }
-            resDiv.innerHTML = h;
+            resDiv.innerHTML = h || '<p class="col-span-full text-center py-20 text-gray-600 font-black cyber-font italic">DATA NOT FOUND IN X-VISION CORE</p>';
         }
 
-        function switchTab(t) {
-            // Logic เปลี่ยน Tab
+        async function adm(act, u='') {
+            const body = { act, u: u || document.getElementById('nu').value, p: document.getElementById('np').value, d: document.getElementById('nd').value };
+            await fetch('/admin/action', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+            alert('SYSTEM UPDATED'); refreshAdmin();
+        }
+
+        async function refreshAdmin() {
+            const res = await (await fetch('/admin/action', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({act:'list'})})).json();
+            document.getElementById('user-list').innerHTML = Object.entries(res.db).map(([u, i]) => `
+                <div class="flex items-center justify-between p-7 bg-white/5 rounded-[2.5rem] border border-white/5 hover:bg-white/10 transition-all">
+                    <div><p class="cyber-font text-indigo-400 font-bold text-lg underline decoration-white/10 underline-offset-4">${u}</p><p class="text-[10px] text-gray-500 font-black uppercase mt-1 tracking-widest">หมดอายุ: ${i.expire}</p></div>
+                    <div class="flex items-center gap-6">
+                        <span class="font-mono text-sm bg-black/50 px-5 py-2 rounded-xl text-gray-400 border border-white/5">${i.password}</span>
+                        <button onclick="adm('del', '${u}')" class="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 transition-all shadow-inner"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+            `).join('');
         }
     </script>
 </body>
