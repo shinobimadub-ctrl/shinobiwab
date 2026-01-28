@@ -2,104 +2,41 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-VISION | SECURE ACCESS</title>
+    <title>X-VISION | LOGIN</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Prompt:wght@300;400;600&display=swap');
-        body {
-            background: radial-gradient(circle at center, #111827 0%, #000000 100%);
-            font-family: 'Prompt', sans-serif;
-            overflow: hidden;
-        }
-        .cyber-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            box-shadow: 0 0 50px rgba(0,0,0,1);
-        }
-        .glow-text { text-shadow: 0 0 10px rgba(99, 102, 241, 0.8); }
-        .cyber-input {
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-        .cyber-input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
-            outline: none;
-        }
-        .captcha-box {
-            background: linear-gradient(45deg, #1e1e1e, #2d2d2d);
-            letter-spacing: 5px;
-            user-select: none;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Prompt&display=swap');
+        body { background: #050508; font-family: 'Prompt', sans-serif; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .captcha { letter-spacing: 10px; font-family: 'Orbitron'; background: #111; color: #6366f1; }
     </style>
 </head>
-<body class="flex items-center justify-center h-screen">
-    <div class="cyber-card p-10 rounded-[3rem] w-full max-w-md relative z-10">
-        <div class="text-center mb-10">
-            <h1 class="cyber-font text-3xl font-black italic text-white glow-text mb-2">X-VISION</h1>
-            <p class="text-[10px] text-indigo-400 tracking-[0.4em] uppercase font-bold">Access Intelligence System</p>
-        </div>
-
+<body>
+    <div class="glass p-12 rounded-[3rem] w-full max-w-md shadow-2xl">
+        <h1 class="text-3xl font-black text-center mb-10 tracking-tighter" style="font-family:'Orbitron'">X-VISION</h1>
         <div class="space-y-6">
-            <div class="relative">
-                <i class="fa-solid fa-user absolute left-4 top-4 text-gray-500"></i>
-                <input type="text" id="u" placeholder="USERNAME" class="cyber-input w-full p-4 pl-12 rounded-2xl text-white font-mono">
-            </div>
-            <div class="relative">
-                <i class="fa-solid fa-lock absolute left-4 top-4 text-gray-500"></i>
-                <input type="password" id="p" placeholder="PASSWORD" class="cyber-input w-full p-4 pl-12 rounded-2xl text-white font-mono">
-            </div>
-
+            <input type="text" id="u" placeholder="USERNAME" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-indigo-500">
+            <input type="password" id="p" placeholder="PASSWORD" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-indigo-500">
             <div class="flex gap-4 items-center">
-                <div id="captcha-code" class="captcha-box flex-1 p-4 rounded-2xl text-center text-2xl font-black text-indigo-400 italic font-mono"></div>
-                <button onclick="genCaptcha()" class="p-4 text-gray-500 hover:text-white"><i class="fa-solid fa-rotate-right"></i></button>
+                <div id="cp-code" class="captcha flex-1 p-4 rounded-2xl text-center font-bold text-xl"></div>
+                <button onclick="gen()" class="text-gray-500"><i class="fa-solid fa-sync"></i></button>
             </div>
-            <input type="text" id="captcha-input" placeholder="ENTER CAPTCHA" class="cyber-input w-full p-4 rounded-2xl text-center text-white tracking-widest font-bold">
-
-            <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-5 rounded-2xl transition-all active:scale-95 shadow-lg shadow-indigo-600/20">
-                SYSTEM LOGIN
-            </button>
+            <input type="text" id="cp-in" placeholder="CAPTCHA" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-center font-bold">
+            <button onclick="auth()" class="w-full py-5 bg-indigo-600 rounded-2xl font-black shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-all">LOGIN SYSTEM</button>
         </div>
-
-        <p id="msg" class="text-center mt-6 text-red-500 text-sm font-bold"></p>
+        <p id="err" class="text-red-500 text-center mt-4 text-xs font-bold"></p>
     </div>
-
     <script>
-        let currentCaptcha = "";
-        function genCaptcha() {
-            currentCaptcha = Math.floor(1000 + Math.random() * 9000).toString();
-            document.getElementById('captcha-code').innerText = currentCaptcha;
+        let code = "";
+        function gen() { code = Math.floor(1000 + Math.random() * 9000).toString(); document.getElementById('cp-code').innerText = code; }
+        async function auth() {
+            const u = document.getElementById('u').value, p = document.getElementById('p').value, ci = document.getElementById('cp-in').value;
+            if(ci !== code) { alert("Captcha Invalid"); gen(); return; }
+            const r = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({u, p}) });
+            const d = await r.json();
+            if(d.status === 'ok') location.href='/dashboard'; else document.getElementById('err').innerText = d.m;
         }
-
-        async function login() {
-            const u = document.getElementById('u').value;
-            const p = document.getElementById('p').value;
-            const ci = document.getElementById('captcha-input').value;
-            const msg = document.getElementById('msg');
-
-            if(ci !== currentCaptcha) {
-                msg.innerText = "CAPTCHA INVALID!";
-                genCaptcha();
-                return;
-            }
-
-            const res = await fetch('/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({u, p})
-            });
-            const data = await res.json();
-            if(data.status === 'ok') location.href = '/dashboard';
-            else {
-                msg.innerText = data.m;
-                genCaptcha();
-            }
-        }
-        window.onload = genCaptcha;
+        window.onload = gen;
     </script>
 </body>
 </html>
