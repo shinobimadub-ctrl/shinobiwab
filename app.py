@@ -5,16 +5,16 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, session, jsonify, redirect, url_for
 
 app = Flask(__name__)
-app.secret_key = 'cyber_ultra_fixed_key_2026'
+# เพิ่ม Secret Key เพื่อให้ Session ทำงานได้
+app.secret_key = 'x-vision-ultra-secret-key-2026'
 
 # --- CONFIG ---
 DB_FILE = 'database.json'
-WEBHOOK_URL = 'https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS' 
+WEBHOOK_URL = 'https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS'
 
-# ฟังก์ชันโหลดข้อมูลจากไฟล์ (ป้องกันรหัสหาย)
 def load_db():
     if not os.path.exists(DB_FILE):
-        # ถ้าไม่มีไฟล์ ให้สร้าง Admin เริ่มต้น
+        # ตั้งค่า Admin เริ่มต้น
         init = {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
         with open(DB_FILE, 'w', encoding='utf-8') as f:
             json.dump(init, f, indent=4, ensure_ascii=False)
@@ -23,15 +23,17 @@ def load_db():
         with open(DB_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
     except:
-        return {"admin": {"password": "1234", "role": "admin", "expire": "2099-12-31"}}
+        return {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
 
-# ฟังก์ชันเซฟข้อมูลลงไฟล์ทันที
 def save_db(data):
     with open(DB_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 def send_to_webhook(username, status, ip):
-    if not WEBHOOK_URL or "https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS" in WEBHOOK_URL: return
+    # แก้ไข Logic ตรงนี้ให้ทำงานเมื่อมี URL เท่านั้น
+    if not WEBHOOK_URL or len(WEBHOOK_URL) < 10:
+        return
+        
     color = 65280 if status == "SUCCESS" else 16711680
     payload = {
         "embeds": [{
@@ -40,13 +42,15 @@ def send_to_webhook(username, status, ip):
             "fields": [
                 {"name": "👤 User", "value": f"`{username}`", "inline": True},
                 {"name": "🌐 IP", "value": f"`{ip}`", "inline": True},
-                {"name": "⏰ Time", "value": f"{datetime.now().strftime('%H:%M:%S')}"}
+                {"name": "⏰ Time", "value": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"}
             ],
             "footer": {"text": "X-VISION SYSTEM LOG"}
         }]
     }
-    try: requests.post(WEBHOOK_URL, json=payload, timeout=5)
-    except: pass
+    try:
+        requests.post(WEBHOOK_URL, json=payload, timeout=5)
+    except Exception as e:
+        print(f"Webhook Error: {e}")
 
 @app.route('/')
 def index():
@@ -55,32 +59,36 @@ def index():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    u, p = data.get('u'), data.get('p')
-    db = load_db() # โหลดจากไฟล์ทุกครั้งที่มีคนล็อกอิน
+    u = data.get('u')
+    p = data.get('p')
+    db = load_db()
     
     user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     
     if u in db and str(db[u]['password']) == str(p):
-        exp = datetime.strptime(db[u]['expire'], '%Y-%m-%d')
-        if datetime.now() > exp:
+        exp_date = datetime.strptime(db[u]['expire'], '%Y-%m-%d')
+        if datetime.now() > exp_date:
             send_to_webhook(u, "EXPIRED", user_ip)
             return jsonify({"status": "err", "m": "รหัสหมดอายุแล้ว"}), 403
         
-        session['user'], session['role'] = u, db[u]['role']
+        session['user'] = u
+        session['role'] = db[u]['role']
         send_to_webhook(u, "SUCCESS", user_ip)
         return jsonify({"status": "ok"})
     
     send_to_webhook(u, "FAILED", user_ip)
-    return jsonify({"status": "err", "m": "รหัสผ่านไม่ถูกต้อง"}), 401
+    return jsonify({"status": "err", "m": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"})
 
 @app.route('/dashboard')
 def dashboard():
-    if 'user' not in session: return redirect(url_for('login'))
-    return render_template('dashboard.html', role=session['role'], user=session['user'])
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('dashboard.html', role=session.get('role'), user=session.get('user'))
 
 @app.route('/api/search', methods=['POST'])
 def api_search():
-    if 'user' not in session: return jsonify({"status": "err"}), 403
+    if 'user' not in session:
+        return jsonify({"status": "err"}), 403
     p = request.get_json()
     m, v = p.get('m'), p.get('v')
     conf = {
@@ -92,11 +100,13 @@ def api_search():
     try:
         r = requests.get(conf[m], timeout=15).json()
         return jsonify({"status": "ok", "data": r})
-    except: return jsonify({"status": "err"})
+    except:
+        return jsonify({"status": "err"})
 
 @app.route('/admin/action', methods=['POST'])
 def admin_action():
-    if session.get('role') != 'admin': return jsonify({"status": "denied"}), 403
+    if session.get('role') != 'admin':
+        return jsonify({"status": "denied"}), 403
     req = request.get_json()
     act = req.get('act')
     db = load_db()
@@ -104,15 +114,18 @@ def admin_action():
     if act == 'add':
         u, p, d = req['u'], req['p'], int(req['d'])
         db[u] = {
-            "password": p, 
-            "role": "user", 
+            "password": p,
+            "role": "user",
             "expire": (datetime.now() + timedelta(days=d)).strftime('%Y-%m-%d')
         }
-        save_db(db) # เซฟลงไฟล์ทันที
+        save_db(db)
     elif act == 'del':
-        if req['u'] != 'admin': 
-            db.pop(req['u'], None)
+        target_user = req.get('u')
+        if target_user != 'shinobi2023':
+            db.pop(target_user, None)
             save_db(db)
+    elif act == 'list':
+        return jsonify({"status": "ok", "db": db})
     
     return jsonify({"status": "ok", "db": db})
 
@@ -122,5 +135,5 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True, port=10000)
-
+    # รันที่ Port 10000 ตามที่คุณต้องการ
+    app.run(debug=True, host='0.0.0.0', port=10000)
