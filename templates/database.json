@@ -3,5 +3,10 @@
         "password": "shinobima",
         "role": "admin",
         "expire": "2099-12-31"
+    },
+    "gun": {
+        "password": "2233",
+        "role": "user",
+        "expire": "2026-09-08"
     }
 }
