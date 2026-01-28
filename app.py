@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, session, jsonify, redirect, url_for
 
 app = Flask(__name__)
-# เพิ่ม Secret Key เพื่อให้ Session ทำงานได้
-app.secret_key = 'x-vision-ultra-secret-key-2026'
+# Secret Key สำหรับระบบ Session (ห้ามลบ)
+app.secret_key = 'shinobi_ultra_vision_key_2026'
 
 # --- CONFIG ---
 DB_FILE = 'database.json'
@@ -14,10 +14,9 @@ WEBHOOK_URL = 'https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP
 
 def load_db():
     if not os.path.exists(DB_FILE):
-        # ตั้งค่า Admin เริ่มต้น
+        # สร้าง Admin เริ่มต้น: shinobi2023 / shinobima
         init = {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
-        with open(DB_FILE, 'w', encoding='utf-8') as f:
-            json.dump(init, f, indent=4, ensure_ascii=False)
+        save_db(init)
         return init
     try:
         with open(DB_FILE, 'r', encoding='utf-8') as f:
@@ -30,10 +29,7 @@ def save_db(data):
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 def send_to_webhook(username, status, ip):
-    # แก้ไข Logic ตรงนี้ให้ทำงานเมื่อมี URL เท่านั้น
-    if not WEBHOOK_URL or len(WEBHOOK_URL) < 10:
-        return
-        
+    if not WEBHOOK_URL: return
     color = 65280 if status == "SUCCESS" else 16711680
     payload = {
         "embeds": [{
@@ -47,10 +43,8 @@ def send_to_webhook(username, status, ip):
             "footer": {"text": "X-VISION SYSTEM LOG"}
         }]
     }
-    try:
-        requests.post(WEBHOOK_URL, json=payload, timeout=5)
-    except Exception as e:
-        print(f"Webhook Error: {e}")
+    try: requests.post(WEBHOOK_URL, json=payload, timeout=5)
+    except: pass
 
 @app.route('/')
 def index():
@@ -59,36 +53,30 @@ def index():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    u = data.get('u')
-    p = data.get('p')
+    u, p = data.get('u'), data.get('p')
     db = load_db()
-    
     user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     
     if u in db and str(db[u]['password']) == str(p):
-        exp_date = datetime.strptime(db[u]['expire'], '%Y-%m-%d')
-        if datetime.now() > exp_date:
+        exp = datetime.strptime(db[u]['expire'], '%Y-%m-%d')
+        if datetime.now() > exp:
             send_to_webhook(u, "EXPIRED", user_ip)
             return jsonify({"status": "err", "m": "รหัสหมดอายุแล้ว"}), 403
-        
-        session['user'] = u
-        session['role'] = db[u]['role']
+        session['user'], session['role'] = u, db[u]['role']
         send_to_webhook(u, "SUCCESS", user_ip)
         return jsonify({"status": "ok"})
     
     send_to_webhook(u, "FAILED", user_ip)
-    return jsonify({"status": "err", "m": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"})
+    return jsonify({"status": "err", "m": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"}), 401
 
 @app.route('/dashboard')
 def dashboard():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    return render_template('dashboard.html', role=session.get('role'), user=session.get('user'))
+    if 'user' not in session: return redirect(url_for('login'))
+    return render_template('dashboard.html', role=session['role'], user=session['user'])
 
 @app.route('/api/search', methods=['POST'])
 def api_search():
-    if 'user' not in session:
-        return jsonify({"status": "err"}), 403
+    if 'user' not in session: return jsonify({"status": "err"}), 403
     p = request.get_json()
     m, v = p.get('m'), p.get('v')
     conf = {
@@ -100,33 +88,22 @@ def api_search():
     try:
         r = requests.get(conf[m], timeout=15).json()
         return jsonify({"status": "ok", "data": r})
-    except:
-        return jsonify({"status": "err"})
+    except: return jsonify({"status": "err", "m": "API Connection Error"})
 
 @app.route('/admin/action', methods=['POST'])
 def admin_action():
-    if session.get('role') != 'admin':
-        return jsonify({"status": "denied"}), 403
+    if session.get('role') != 'admin': return jsonify({"status": "denied"}), 403
     req = request.get_json()
-    act = req.get('act')
-    db = load_db()
-    
+    act, db = req.get('act'), load_db()
     if act == 'add':
         u, p, d = req['u'], req['p'], int(req['d'])
-        db[u] = {
-            "password": p,
-            "role": "user",
-            "expire": (datetime.now() + timedelta(days=d)).strftime('%Y-%m-%d')
-        }
+        db[u] = {"password": p, "role": "user", "expire": (datetime.now() + timedelta(days=d)).strftime('%Y-%m-%d')}
         save_db(db)
-    elif act == 'del':
-        target_user = req.get('u')
-        if target_user != 'shinobi2023':
-            db.pop(target_user, None)
-            save_db(db)
+    elif act == 'del' and req['u'] != 'shinobi2023':
+        db.pop(req['u'], None)
+        save_db(db)
     elif act == 'list':
         return jsonify({"status": "ok", "db": db})
-    
     return jsonify({"status": "ok", "db": db})
 
 @app.route('/logout')
@@ -135,5 +112,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    # รันที่ Port 10000 ตามที่คุณต้องการ
     app.run(debug=True, host='0.0.0.0', port=10000)
