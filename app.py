@@ -8,7 +8,7 @@ import requests
 from datetime import datetime
 
 # --- CONFIGURATION ---
-TOKEN = 'MTQ2MDYzODAzMTIyNzc4NTI3Nw.GtTyXp.VLvh6gYiVsEUpKPCDwFpcJsrxFOZp1zCdHXpm4'
+TOKEN = 'MTQ2MDYzODAzMTIyNzc4NTI3Nw.GQ92N0.YOAq1REAlUwpgAXy2rEYBQYC_y4fmvye59IPOc'
 GUILD_ID = 1437386797339381832
 ROLE_ID = 1446770066241880075
 WEBHOOK_URL = 'https://discord.com/api/webhooks/1467603789157761239/_6ItzBctBnqj9WBU6p0WuPrvEUwPXzroOQpywdnGDA9AT1HT5RLe2qIBl0rS3DVEwb6i'
@@ -79,3 +79,4 @@ def run_flask():
 if __name__ == '__main__':
     threading.Thread(target=run_flask).start()
     bot.run(TOKEN)
+
